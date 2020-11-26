@@ -29,6 +29,8 @@ function compile(node, vm) {
                     vm[name] = e.target.value;
                 })
                 node.value = vm.data[name];
+                node.removeAttribute("v-model");
+                new Watcher(vm, node, name);
             }
         }
     }
@@ -37,7 +39,8 @@ function compile(node, vm) {
         if (reg.test(node.nodeValue)) {
             var name = RegExp.$1;
             name = name.trim();
-            node.nodeValue = vm.data[name];
+            // node.nodeValue = vm.data[name];
+            new Watcher(vm, node, name);
         }
     }
 }
@@ -55,8 +58,12 @@ function Vue(options) {
 }
 
 function defineReactive(obj, key, value) {
+    var dep = new Dep();
     Object.defineProperty(obj, key, {
         get: function () {
+            if (Dep.global) {
+                dep.add(Dep.global);
+            }
             return value;
         },
         set: function (newValue) {
@@ -64,6 +71,7 @@ function defineReactive(obj, key, value) {
                 return;
             }
             value = newValue;
+            dep.notify();
         }
     })
 }
@@ -72,6 +80,49 @@ function observe(obj, vm) {
     Object.keys(obj).forEach(function (key) {
         defineReactive(vm, key, obj[key]);
     })
+}
+
+function Dep() {
+    this.subs = [];
+}
+
+Dep.prototype = {
+    add: function (sub) {
+        this.subs.push(sub)
+    },
+    notify: function () {
+        this.subs.forEach(function (sub) {
+            console.log(sub);
+            sub.update();
+        })
+    }
+}
+
+function Watcher(vm, node, name) {
+    Dep.global = this;
+    this.name = name;
+    this.node = node;
+    this.vm = vm;
+    this.update();
+    Dep.global = null;
+}
+
+Watcher.prototype.update = function () {
+    this.get();
+    switch (this.node.nodeType) {
+        case 1:
+            this.node.value = this.value;
+            break;
+        case 3:
+            this.node.nodeValue = this.value;
+            break;
+        default:
+            break;
+    };
+}
+
+Watcher.prototype.get = function () {
+    this.value = this.vm[this.name];
 }
 
 var Demo = new Vue({
