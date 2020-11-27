@@ -2,20 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>vue双向绑定</title>
+    <title>mini vue</title>
+    <script src="./dist/bundle.js"></script>
 </head>
 <body>
     <div id="mvvm">
-        <input v-model="d" id="test">{{text}}
-        <div id="test1">{{d}}</div>
+        <div id="test1">{{message}}</div>
     </div>
-    <script src="src/mini_vue.js" type="module"></script>
     <script>
-        var Demo = new Vue({
+        new Vue({
             el: 'mvvm',
             data: {
-                text: 'HelloWorld',
-                d: '123'
+                message: 'HelloWorld',
             }
         })
     </script>

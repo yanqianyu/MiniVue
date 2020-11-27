@@ -1,0 +1,32 @@
+{
+  "name": "minivue",
+  "version": "1.0.0",
+  "description": "learning vue...",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development webpack serve --config ./webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yanqianyu/MiniVue.git"
+  },
+  "keywords": [
+    "vue"
+  ],
+  "author": "Qianyu Yan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yanqianyu/MiniVue/issues"
+  },
+  "homepage": "https://github.com/yanqianyu/MiniVue#readme",
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "babel-loader": "^8.2.2",
+    "babel-preset-env": "^1.7.0",
+    "cross-env": "^7.0.2",
+    "webpack": "^5.8.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^3.11.0"
+  }
+}
