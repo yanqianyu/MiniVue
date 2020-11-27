@@ -1,3 +1,6 @@
+import Dep from "./Dep";
+import Watcher from "./Watcher";
+
 // 虚拟节点容器
 function nodeContainer(node, vm, flag) {
     var flag = flag || document.createDocumentFragment();
@@ -20,6 +23,7 @@ function compile(node, vm) {
     if (node.nodeType === 1) {
         // 表示是个元素
         var attr = node.attributes;
+        // 解析节点的属性
         for(var i = 0; i < attr.length; i++) {
             // 判断节点中的指令是否含有v-model这个指令
             if (attr[i].nodeName === 'v-model') {
@@ -58,9 +62,12 @@ function Vue(options) {
 }
 
 function defineReactive(obj, key, value) {
+    // 每个vm的data属性值声明一个新的订阅者
     var dep = new Dep();
+    // 对数据修改和获取进行拦截
     Object.defineProperty(obj, key, {
         get: function () {
+            console.log("get了值"+value);
             if (Dep.global) {
                 dep.add(Dep.global);
             }
@@ -71,6 +78,7 @@ function defineReactive(obj, key, value) {
                 return;
             }
             value = newValue;
+            console.log("set了最新值"+value);
             dep.notify();
         }
     })
@@ -81,54 +89,3 @@ function observe(obj, vm) {
         defineReactive(vm, key, obj[key]);
     })
 }
-
-function Dep() {
-    this.subs = [];
-}
-
-Dep.prototype = {
-    add: function (sub) {
-        this.subs.push(sub)
-    },
-    notify: function () {
-        this.subs.forEach(function (sub) {
-            console.log(sub);
-            sub.update();
-        })
-    }
-}
-
-function Watcher(vm, node, name) {
-    Dep.global = this;
-    this.name = name;
-    this.node = node;
-    this.vm = vm;
-    this.update();
-    Dep.global = null;
-}
-
-Watcher.prototype.update = function () {
-    this.get();
-    switch (this.node.nodeType) {
-        case 1:
-            this.node.value = this.value;
-            break;
-        case 3:
-            this.node.nodeValue = this.value;
-            break;
-        default:
-            break;
-    };
-}
-
-Watcher.prototype.get = function () {
-    this.value = this.vm[this.name];
-}
-
-var Demo = new Vue({
-    el: 'mvvm',
-    data: {
-        text: 'HelloWorld',
-        d: '123'
-    }
-})
