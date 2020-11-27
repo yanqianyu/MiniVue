@@ -3,9 +3,9 @@ const path = require("path");
 module.exports = {
     entry: ["./src/Vue.js"],
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, './dist'),
         publicPath: "/dist/",
-        filename: "bundle.js"
+        filename: "vue.js"
     },
     mode: "development",
     module: {
