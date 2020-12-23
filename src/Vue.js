@@ -9,7 +9,6 @@ function Vue(options) {
     observe(data, this);
 
     var id = options.el;
-    console.log(id);
     var dom = nodeContainer(document.getElementById(id), this);
     document.getElementById(id).appendChild(dom);
 }
