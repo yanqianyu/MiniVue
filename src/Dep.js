@@ -1,11 +1,26 @@
+// Dep.target为watcher实例
+Dep.target = null;
+
 function Dep() {
     this.subs = [];
 }
 
 Dep.prototype = {
-    add: function (sub) {
+    depend() {
+        // Dep.target为watcher实例
+        if (Dep.target) {
+            Dep.target.addDep(this);
+        }
+    },
+    addSub: function (sub) {
         // 增加订阅者
         this.subs.push(sub)
+    },
+    removeSub(sub) {
+        const index = this.subs.indexOf(sub);
+        if (index > -1) {
+            this.subs.splice(index, 1);
+        }
     },
     notify: function () {
         this.subs.forEach(function (sub) {
@@ -14,6 +29,6 @@ Dep.prototype = {
             sub.update();
         })
     }
-}
+};
 
 export default Dep;

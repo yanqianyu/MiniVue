@@ -7,6 +7,13 @@
     "dev": "cross-env NODE_ENV=development webpack serve --config ./webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint",
+      "commit-msg": "node script/verify-commit.js",
+      "pre-push": "npm test"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yanqianyu/MiniVue.git"
@@ -25,6 +32,7 @@
     "babel-loader": "^8.2.2",
     "babel-preset-env": "^1.7.0",
     "cross-env": "^7.0.2",
+    "husky": "^4.3.6",
     "webpack": "^5.8.0",
     "webpack-cli": "^4.2.0",
     "webpack-dev-server": "^3.11.0"

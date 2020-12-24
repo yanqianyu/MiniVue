@@ -1,11 +1,10 @@
-// v-on
 export default {
-    on: {
+    bind: {
         implement(vm, el, name, expOrFn) {
-            el['on' + name] = vm[expOrFn].bind(vm);
+            el.setAttribute(expOrFn, vm[expOrFn]);
         },
         update(vm, el, expOrFn, newVal, oldVal) {
-
+            el.setAttribute(expOrFn, newVal);
         }
     }
 }
