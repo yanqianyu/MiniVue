@@ -1,33 +1,47 @@
 import Dep from "./Dep";
 
-function Watcher(vm, node, name) {
-    // 将自己赋值给Dep函数对象的全局变量
-    Dep.global = this;
-    this.name = name;
-    this.node = node;
+// expOrFn 为表达式或一个变量名
+function Watcher(vm, expOrFn, callback) {
+    vm._watchers.push(this);
     this.vm = vm;
-    this.update();
-    Dep.global = null;
+    this.deps = [];
+    this.cb = callback;
+
+    this.getter = () => vm[expOrFn];
+    this.setter = (val) => {
+        vm[expOrFn] = val;
+    };
+
+    this.value = this.get();
 }
 
 Watcher.prototype.update = function () {
-    this.get();
-    // 判断节点的类型改变试图的值
-    switch (this.node.nodeType) {
-        case 1:
-            this.node.value = this.value;
-            break;
-        case 3:
-            this.node.nodeValue = this.value;
-            break;
-        default:
-            break;
+    const value = this.get();
+    const oldVal = this.value;
+
+    if (value !== oldVal) {
+        this.cb.call(this.vm, value, oldVal);
     }
-}
+
+    this.value = value;
+};
 
 Watcher.prototype.get = function () {
-    // 把this的value值赋值，触发data的defineProperty方法中的get方法
-    this.value = this.vm[this.name];
-}
+    Dep.target = this;
+    const value = this.getter();
+    Dep.target = null;
+    return value;
+};
+
+Watcher.prototype.set = function (val) {
+    this.setter(val);
+};
+
+Watcher.prototype.addDep = function (dep) {
+    if (this.deps.indexOf(dep) !== -1) {
+        this.deps.push(dep);
+        dep.addSub(this);
+    }
+};
 
 export default Watcher;
