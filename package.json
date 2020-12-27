@@ -26,12 +26,12 @@
   },
   "homepage": "https://github.com/yanqianyu/MiniVue#readme",
   "devDependencies": {
-    "@babel/core": "^7.12.9",
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
     "babel-loader": "^8.2.2",
-    "babel-preset-env": "^1.7.0",
     "cross-env": "^7.0.2",
     "husky": "^4.3.6",
-    "webpack": "^5.8.0",
+    "webpack": "^5.11.0",
     "webpack-cli": "^4.2.0",
     "webpack-dev-server": "^3.11.0"
   },

@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>mini vue</title>
-    <script src="./dist/vue.js"></script>
+
 </head>
+<script src="./dist/vue.js"></script>
 <body>
-    <div id="mvvm">
-        <div id="test1">{{message}}</div>
+    <div id="app">
+        <h1 id="name">{{name}}</h1>
     </div>
     <script>
-        new Vue({
-            el: 'mvvm',
-            data: {
-                message: 'HelloWorld',
-            }
-        });
+        var ele = document.querySelector('#name');
+        var selfVue = new Vue({
+            name: 'hello world'
+        }, ele, 'name');
+
+        window.setTimeout(function () {
+            console.log('name值改变了');
+            selfVue.data.name = 'canfoo';
+        }, 2000);
     </script>
 </body>
 </html>
