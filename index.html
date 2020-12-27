@@ -8,17 +8,19 @@
 <script src="./dist/vue.js"></script>
 <body>
     <div id="app">
-        <h1 id="name">{{name}}</h1>
+        {{name}}
     </div>
     <script>
-        var ele = document.querySelector('#name');
         var selfVue = new Vue({
-            name: 'hello world'
-        }, ele, 'name');
+            el: '#app',
+            data: {
+                name: 'hello world'
+            }
+        });
 
         window.setTimeout(function () {
             console.log('name值改变了');
-            selfVue.data.name = 'canfoo';
+            selfVue.name = '你好';
         }, 2000);
     </script>
 </body>

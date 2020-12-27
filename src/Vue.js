@@ -1,17 +1,35 @@
 import {observe} from "./core/Observer";
 import Watcher from "./core/Watcher";
+import Compile from "./compiler/Compile";
+
 
 class Vue {
-    constructor(data, el, exp) {
-       this.data = data;
-       console.log(this);
-       observe(data);
-       el.innerHTML = this.data[exp];
+    constructor(options) {
+       this.data = options.data;
+       let self = this;
 
-       new Watcher(this, exp, function (value) {
-           el.innerHTML = value;
+       Object.keys(this.data).forEach(function (key) {
+           self.proxyKeys(key);
        });
-        return this;
+
+       observe(this.data);
+       new Compile(options.el, this);
+       return this;
+    }
+
+    // this.data.XXX -> this.XXX
+    proxyKeys(key) {
+        let self = this;
+        Object.defineProperty(this, key, {
+            enumerable: false,
+            configurable: true,
+            get: function () {
+                return self.data[key];
+            },
+            set: function (newVal) {
+                self.data[key] = newVal;
+            }
+        })
     }
 }
 
