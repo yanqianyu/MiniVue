@@ -33,15 +33,39 @@ export default class Compile {
         return fragment;
     }
 
-    // 先只处理{{XXX}}
+    compile(node) {
+        let nodeAttrs = node.attributes;
+        let self = this;
+        [].slice.call(nodeAttrs).forEach(function (attr) {
+            let attrName = attr.name;
+            if (self.isDirective(attrName)) {
+                let exp = attr.value;
+                let dir = attrName.substring(2);
+                if (self.isEventDirective(dir)) {
+                    // v-on
+                    self.compileEvent(node, self.vm, exp, dir);
+                }
+                else {
+                    // v-model
+                    self.compileModel(node, self.vm, exp, dir);
+                }
+                node.removeAttribute(attrName);
+            }
+        })
+    }
+
     compileElement(el) {
         let childNodes = el.childNodes;
         let self = this;
+        // 使用slice将NodeList转为数组（兼容性）
         [].slice.call(childNodes).forEach(function (node) {
             let reg = /\{\{(.*)\}\}/;
             let text = node.textContent;
 
-            if (self.isTextNode(node) && reg.test(text)) {
+            if (self.isElementNode(node)) {
+                self.compile(node);
+            }
+            else if (self.isTextNode(node) && reg.test(text)) {
                 self.compileText(node, reg.exec(text)[1]);
             }
 
@@ -54,19 +78,64 @@ export default class Compile {
     compileText(node, exp) {
         let self = this;
         let initText = this.vm[exp];
-        console.log(initText);
         this.updateText(node, initText);
         new Watcher(this.vm, exp, function (value) {
             self.updateText(node, value);
         })
     }
 
+    compileEvent(node, vm, exp, dir) {
+        //v-XX:YY
+        let eventType = dir.split(":")[1];
+        let cb = vm.methods && vm.methods[exp];
+        if (eventType && cb) {
+            node.addEventListener(eventType, cb.bind(vm), false);
+        }
+    }
+
+    compileModel(node, vm, exp, dir) {
+        let self = this;
+        let val = this.vm[exp];
+        this.modelUpdater(node, val);
+        new Watcher(this.vm, exp, function (value) {
+            self.modelUpdater(node, value);
+        });
+
+        node.addEventListener('input', function (e) {
+            var newValue = e.target.value;
+            if (val === newValue) {
+                return;
+            }
+            self.vm[exp] = newValue;
+            val = newValue;
+        })
+    }
+
     updateText(node, value) {
+        // {{}}
         node.textContent = typeof value == 'undefined' ? '' : value;
+    }
+
+    modelUpdater(node, value) {
+        node.value = typeof value == 'undefined' ? '' : value;
+    }
+
+    isDirective(attr) {
+        // v-XX
+        return attr.indexOf('v-') === 0;
+    }
+
+    isElementNode(node) {
+        return node.nodeType === 1;
     }
 
     isTextNode(node) {
         return node.nodeType === 3;
+    }
+
+    isEventDirective(dir) {
+        // v-on
+        return dir.indexOf('on:') === 0;
     }
 }
 

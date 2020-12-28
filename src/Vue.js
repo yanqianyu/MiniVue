@@ -7,6 +7,7 @@ class Vue {
     constructor(options) {
        this.data = options.data;
        let self = this;
+       this.methods = options.methods;
 
        Object.keys(this.data).forEach(function (key) {
            self.proxyKeys(key);

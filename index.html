@@ -8,20 +8,24 @@
 <script src="./dist/vue.js"></script>
 <body>
     <div id="app">
-        {{name}}
+        <h2>{{title}}</h2>
+        <input v-model="name">
+        <h1>{{name}}</h1>
+        <button v-on:click="clickMe">click me</button>
     </div>
     <script>
         var selfVue = new Vue({
             el: '#app',
             data: {
+                title: 'hello world title',
                 name: 'hello world'
+            },
+            methods: {
+                clickMe: function () {
+                    this.title = 'hello world title 2'
+                }
             }
         });
-
-        window.setTimeout(function () {
-            console.log('name值改变了');
-            selfVue.name = '你好';
-        }, 2000);
     </script>
 </body>
 </html>
