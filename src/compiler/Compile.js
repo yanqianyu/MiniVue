@@ -4,6 +4,7 @@
 
 import Watcher from "../core/Watcher";
 
+const textRE = /\{\{((?:.|\r?\n)+?)\}\}/g;
 export default class Compile {
     constructor(el, vm) {
         this.el = document.querySelector(el);
@@ -59,14 +60,14 @@ export default class Compile {
         let self = this;
         // 使用slice将NodeList转为数组（兼容性）
         [].slice.call(childNodes).forEach(function (node) {
-            let reg = /\{\{(.*)\}\}/;
             let text = node.textContent;
+            let reg = /\{\{(.*)\}\}/;
 
             if (self.isElementNode(node)) {
                 self.compile(node);
             }
-            else if (self.isTextNode(node) && reg.test(text)) {
-                self.compileText(node, reg.exec(text)[1]);
+            else if (self.isTextNode(node)) {
+                self.compileText(node, text);
             }
 
             if (node.childNodes && node.childNodes.length) {
@@ -75,13 +76,21 @@ export default class Compile {
         })
     }
 
-    compileText(node, exp) {
+    compileText(node, text) {
+        // <p> {{}} {{}} </p>的情况
         let self = this;
-        let initText = this.vm[exp];
-        this.updateText(node, initText);
-        new Watcher(this.vm, exp, function (value) {
-            self.updateText(node, value);
-        })
+        let match;
+
+        // {{title}} {{name}}
+        // 全局匹配慎用test方法
+        while ((match = textRE.exec(text))) {
+            let exp = match[1]; // title
+            let initText = this.vm[exp];
+            this.updateText(node, initText);
+            new Watcher(this.vm, exp, function (value) {
+                self.updateText(node, value);
+            });
+        }
     }
 
     compileEvent(node, vm, exp, dir) {
@@ -112,7 +121,7 @@ export default class Compile {
     }
 
     updateText(node, value) {
-        // {{}}
+        // todo {{}} {{}}
         node.textContent = typeof value == 'undefined' ? '' : value;
     }
 

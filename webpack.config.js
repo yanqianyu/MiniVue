@@ -1,3 +1,5 @@
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
 const webpack = require("webpack");
 const path = require("path");
 module.exports = {
@@ -7,7 +9,11 @@ module.exports = {
         publicPath: "/dist/",
         filename: "vue.js"
     },
-    mode: "development",
+    devtool: 'eval-source-map',
+    devServer: {
+        hot: true, // 热更新
+        inline: true
+    },
     module: {
         rules: [
             {
@@ -23,5 +29,13 @@ module.exports = {
                 }
             }
         ]
-    }
+    },
+    plugins: [
+        new HtmlWebpackPlugin({
+            filename: 'index.html',
+            template: 'index.html',
+            inject: true
+        }),
+        new webpack.HotModuleReplacementPlugin()
+    ]
 };

@@ -4,7 +4,7 @@
   "description": "learning vue...",
   "main": "index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development webpack serve --config ./webpack.config.js",
+    "dev": "webpack-dev-server --open 'google chrome' --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "husky": {
@@ -30,12 +30,13 @@
     "@babel/preset-env": "^7.12.11",
     "babel-loader": "^8.2.2",
     "cross-env": "^7.0.2",
+    "html-webpack-plugin": "^4.5.0",
     "husky": "^4.3.6",
-    "webpack": "^5.11.0",
-    "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^3.11.0"
+    "webpack": "^4.43.0",
+    "webpack-dev-server": "^3.11.1"
   },
   "dependencies": {
-    "@flowjs/flow.js": "^2.14.1"
+    "@flowjs/flow.js": "^2.14.1",
+    "webpack-cli": "^3.3.12"
   }
 }
