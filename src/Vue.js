@@ -8,6 +8,7 @@ class Vue {
        this.data = options.data;
        let self = this;
        this.methods = options.methods;
+       this._textNodes = []; // 存放文本节点 在compile中使用
 
        Object.keys(this.data).forEach(function (key) {
            self.proxyKeys(key);

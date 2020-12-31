@@ -3,148 +3,88 @@
 // 2. 将模板指令对应的节点绑定对应的更新函数，初始化相应的订阅器
 
 import Watcher from "../core/Watcher";
+import handles from "../directives/handles";
 
+const onRE = /^(v-on:|@)/;
+const modelRE = /^v-model/;
+const bindRE = /^(v-bind:|:)/;
 const textRE = /\{\{((?:.|\r?\n)+?)\}\}/g;
+const textRE2 = /[{}]/g;
 export default class Compile {
     constructor(el, vm) {
         this.el = document.querySelector(el);
         this.vm = vm;
-        this.fragment = null;
+        this.dirs = []; // 指令
+        this.handles = handles;
         this.init();
     }
 
     init() {
-        if (this.el) {
-            this.fragment = this.nodeToFragment(this.el);
-            this.compileElement(this.fragment);
-            this.el.appendChild(this.fragment);
-        }
-        else {
-            console.log('Dom元素不存在')
-        }
+        this.parse(this.el);
+        this.render();
     }
 
-    nodeToFragment(el) {
-        let fragment = document.createDocumentFragment();
-        let child = el.firstChild;
-        while(child) {
-            fragment.appendChild(child);
-            child = el.firstChild;
-        }
-        return fragment;
-    }
-
-    compile(node) {
-        let nodeAttrs = node.attributes;
-        let self = this;
-        [].slice.call(nodeAttrs).forEach(function (attr) {
-            let attrName = attr.name;
-            if (self.isDirective(attrName)) {
-                let exp = attr.value;
-                let dir = attrName.substring(2);
-                if (self.isEventDirective(dir)) {
-                    // v-on
-                    self.compileEvent(node, self.vm, exp, dir);
-                }
-                else {
-                    // v-model
-                    self.compileModel(node, self.vm, exp, dir);
-                }
-                node.removeAttribute(attrName);
+    parse(el) {
+        const attrs = el.attributes;
+        let name;
+        // [].slice.call 考虑兼容性
+        [].slice.call(attrs).forEach(function (attr) {
+            if (onRE.test(attr.name)) {
+                // v-on
             }
-        })
-    }
-
-    compileElement(el) {
-        let childNodes = el.childNodes;
-        let self = this;
-        // 使用slice将NodeList转为数组（兼容性）
-        [].slice.call(childNodes).forEach(function (node) {
-            let text = node.textContent;
-            let reg = /\{\{(.*)\}\}/;
-
-            if (self.isElementNode(node)) {
-                self.compile(node);
+            else if (bindRE.test(attr.name)) {
+                // v-bind
             }
-            else if (self.isTextNode(node)) {
-                self.compileText(node, text);
+            else if (modelRE.test(attr.name)) {
+                // v-model
+                name = attr.name.replace(modelRE, '');
             }
-
-            if (node.childNodes && node.childNodes.length) {
-                self.compileElement(node); // 递归遍历子节点
-            }
-        })
-    }
-
-    compileText(node, text) {
-        // <p> {{}} {{}} </p>的情况
-        let self = this;
-        let match;
-
-        // {{title}} {{name}}
-        // 全局匹配慎用test方法
-        while ((match = textRE.exec(text))) {
-            let exp = match[1]; // title
-            let initText = this.vm[exp];
-            this.updateText(node, initText);
-            new Watcher(this.vm, exp, function (value) {
-                self.updateText(node, value);
-            });
-        }
-    }
-
-    compileEvent(node, vm, exp, dir) {
-        //v-XX:YY
-        let eventType = dir.split(":")[1];
-        let cb = vm.methods && vm.methods[exp];
-        if (eventType && cb) {
-            node.addEventListener(eventType, cb.bind(vm), false);
-        }
-    }
-
-    compileModel(node, vm, exp, dir) {
-        let self = this;
-        let val = this.vm[exp];
-        this.modelUpdater(node, val);
-        new Watcher(this.vm, exp, function (value) {
-            self.modelUpdater(node, value);
         });
 
-        node.addEventListener('input', function (e) {
-            var newValue = e.target.value;
-            if (val === newValue) {
-                return;
+        const children = el.childNodes;
+        [].slice.call(children).forEach(ele => {
+            switch (ele.nodeType) {
+                // element node
+                case 1:
+                    this.parse(ele); break;
+                // text node
+                case 3:
+                    if (textRE.test(ele.nodeValue)) {
+                        this.vm._textNodes.push(ele);
+                    }
+                    break;
             }
-            self.vm[exp] = newValue;
-            val = newValue;
         })
     }
 
-    updateText(node, value) {
-        // todo {{}} {{}}
-        node.textContent = typeof value == 'undefined' ? '' : value;
-    }
+    render() {
+        const vm = this.vm;
+        const that = this;
+        this.dirs.forEach(dir => {
+            const handle = dir.handle;
+            if (handle.implement) {
+                handle.implement(dir.vm, dir.el, dir.dirName, dir.expOrFn);
+            }
 
-    modelUpdater(node, value) {
-        node.value = typeof value == 'undefined' ? '' : value;
-    }
+            const update = function (newVal, oldVal) {
+                handle.update(dir.vm, dir.el, dir.expOrFn, newVal, oldVal);
+            };
 
-    isDirective(attr) {
-        // v-XX
-        return attr.indexOf('v-') === 0;
-    }
+            new Watcher(this.vm, dir.expOrFn, update);
+        });
 
-    isElementNode(node) {
-        return node.nodeType === 1;
-    }
-
-    isTextNode(node) {
-        return node.nodeType === 3;
-    }
-
-    isEventDirective(dir) {
-        // v-on
-        return dir.indexOf('on:') === 0;
+        const handles = this.handles.textNode;
+        vm._textNodes.forEach(e => {
+            let array = e.nodeValue.match(textRE);
+            let rawValue = e.nodeValue;
+            array.forEach(str => {
+                let variable = str.replace(textRE2, ''); // 去掉{{}}
+                handles.implement(vm, e, variable);
+                new Watcher(vm, variable, function (newVal, oldVal) {
+                    handles.update(vm, newVal, oldVal, e, variable, rawValue, textRE, textRE2);
+                })
+            })
+        })
     }
 }
 
