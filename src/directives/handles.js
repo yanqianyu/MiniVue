@@ -9,7 +9,15 @@ export default {
         }
     },
     model: {
-
+        implement(vm, el, name, expOrFn) {
+            el.value = vm[expOrFn];
+            el.oninput = function () {
+                vm[expOrFn] = this.value; // input中this指向input输入框
+            }
+        },
+        update(vm, el, expOrFn, newValue, oldValue) {
+            el.value = newValue;
+        }
     },
     textNode: {
         implement(vm, textNode, variable) {

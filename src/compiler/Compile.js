@@ -24,9 +24,21 @@ export default class Compile {
         this.render();
     }
 
+    addDir(handle, dirName, name, value, el) {
+        this.dirs.push({
+            vm: this.vm,
+            dirName,
+            handle,
+            rawName: name,
+            expOrFn: value,
+            el
+        })
+    }
+
     parse(el) {
         const attrs = el.attributes;
         let name;
+        let that = this;
         // [].slice.call 考虑兼容性
         [].slice.call(attrs).forEach(function (attr) {
             if (onRE.test(attr.name)) {
@@ -38,6 +50,7 @@ export default class Compile {
             else if (modelRE.test(attr.name)) {
                 // v-model
                 name = attr.name.replace(modelRE, '');
+                that.addDir(that.handles.model, name, attr.name, attr.value, el);
             }
         });
 
@@ -66,11 +79,9 @@ export default class Compile {
                 handle.implement(dir.vm, dir.el, dir.dirName, dir.expOrFn);
             }
 
-            const update = function (newVal, oldVal) {
+            new Watcher(this.vm, dir.expOrFn, function (newVal, oldVal) {
                 handle.update(dir.vm, dir.el, dir.expOrFn, newVal, oldVal);
-            };
-
-            new Watcher(this.vm, dir.expOrFn, update);
+            });
         });
 
         const handles = this.handles.textNode;
