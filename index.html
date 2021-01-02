@@ -7,22 +7,26 @@
 <script src="./dist/vue.js"></script>
 <body>
     <div id="app">
-        <!--todo-->
-        <h2>{{title}} {{name}}</h2>
-        <input v-model="name">
-        <h1>{{name}}</h1>
-        <button v-on:click="clickMe">click me</button>
+        <h2>{{year}}年{{month}}月</h2>
+        <input v-model="delta" :bind="year">
+        <button v-on:click="increaseYear">year增加</button>
     </div>
     <script>
         var selfVue = new Vue({
             el: '#app',
             data: {
-                title: 'hello world title',
-                name: 'hello world'
+                year: 2021,
+                month: 1,
+                delta: 1
             },
             methods: {
-                clickMe: function () {
-                    this.title = 'hello world title 2'
+                increaseYear() {
+                    this.year += Number.parseInt(this.delta);
+                }
+            },
+            watch: {
+                year() {
+                    console.log('now year is ' + this.year);
                 }
             }
         });

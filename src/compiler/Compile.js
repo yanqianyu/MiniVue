@@ -5,9 +5,9 @@
 import Watcher from "../core/Watcher";
 import handles from "../directives/handles";
 
-const onRE = /^(v-on:|@)/;
+const onRE = /^(v-on:|@)/; // v-on:click | @click
 const modelRE = /^v-model/;
-const bindRE = /^(v-bind:|:)/;
+const bindRE = /^(v-bind:|:)/; // v-bind: |:bind
 const textRE = /\{\{((?:.|\r?\n)+?)\}\}/g;
 const textRE2 = /[{}]/g;
 export default class Compile {
@@ -43,9 +43,15 @@ export default class Compile {
         [].slice.call(attrs).forEach(function (attr) {
             if (onRE.test(attr.name)) {
                 // v-on
+                name = attr.name.replace(onRE, '');
+                that.addDir(that.handles.on, name, attr.name, attr.value, el);
             }
             else if (bindRE.test(attr.name)) {
                 // v-bind
+                // :bind="name"
+                el.removeAttribute(attr.name.split('=')[0]);
+                name = attr.name.replace(bindRE, '');
+                that.addDir(that.handles.bind, name, attr.name, attr.value, el);
             }
             else if (modelRE.test(attr.name)) {
                 // v-model
@@ -72,7 +78,6 @@ export default class Compile {
 
     render() {
         const vm = this.vm;
-        const that = this;
         this.dirs.forEach(dir => {
             const handle = dir.handle;
             if (handle.implement) {
