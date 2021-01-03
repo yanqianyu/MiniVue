@@ -1,12 +1,5 @@
 import Dep from "./Dep";
 
-export default class Observer {
-    constructor(value) {
-        this.value = value;
-        this.dep = new Dep();
-    }
-}
-
 export function observe(data) {
     if (!data || typeof data !== 'object') {
         return;

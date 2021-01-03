@@ -5,6 +5,8 @@ import Compile from "./compiler/Compile";
 
 class Vue {
     constructor(options) {
+        this._watchers = [];
+
         this.data = options.data;
         let self = this;
         this.methods = options.methods ? options.methods : {};
