@@ -43,5 +43,13 @@ export default {
                 textNode.nodeValue = str;
             }
         }
+    },
+    show: {
+        implement(vm, el, name, expOrFn) {
+            el.style.display = !!vm[expOrFn]? '': 'none';
+        },
+        update(vm, el, expOrFn, newVal, oldVal) {
+            el.style.display = newVal? '': 'none';
+        }
     }
 }

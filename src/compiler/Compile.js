@@ -10,6 +10,9 @@ const modelRE = /^v-model/;
 const bindRE = /^(v-bind:|:)/; // v-bind: |:bind
 const textRE = /\{\{((?:.|\r?\n)+?)\}\}/g;
 const textRE2 = /[{}]/g;
+
+const showRE = /^v-show/; // v-show
+
 export default class Compile {
     constructor(el, vm) {
         this.el = document.querySelector(el);
@@ -57,6 +60,10 @@ export default class Compile {
                 // v-model
                 name = attr.name.replace(modelRE, '');
                 that.addDir(that.handles.model, name, attr.name, attr.value, el);
+            }
+            else if (showRE.test(attr.name)) {
+                name = attr.name.replace(/^v-/, '');
+                that.addDir(that.handles[name], name, attr.name, attr.value, el);
             }
         });
 

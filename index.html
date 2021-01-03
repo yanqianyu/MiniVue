@@ -10,6 +10,8 @@
         <h2>{{year}}年{{month}}月</h2>
         <input v-model="delta" :bind="year">
         <button v-on:click="increaseYear">year增加</button>
+        <p v-show="show">show一下</p>
+        <button @click="changeShow">改变show的状态</button>
     </div>
     <script>
         var selfVue = new Vue({
@@ -17,16 +19,23 @@
             data: {
                 year: 2021,
                 month: 1,
-                delta: 1
+                delta: 1,
+                show: false
             },
             methods: {
                 increaseYear() {
                     this.year += Number.parseInt(this.delta);
+                },
+                changeShow() {
+                    this.show = !this.show;
                 }
             },
             watch: {
                 year() {
                     console.log('now year is ' + this.year);
+                },
+                show() {
+                    console.log('now show is ' + this.show);
                 }
             }
         });
