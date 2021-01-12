@@ -14,6 +14,9 @@
         <button @click="changeShow">改变show的状态</button>
     </div>
     <script>
+        import FakeVuex from "./FakeVuex/fake-vuex";
+        Vue.use(FakeVuex);
+
         var selfVue = new Vue({
             el: '#app',
             data: {
