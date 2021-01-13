@@ -1,18 +1,23 @@
 import Dep from "./Dep";
+import {def} from "../utils";
 
-export function observe(data) {
-    if (!data || typeof data !== 'object') {
-        return;
+export class Observer {
+    constructor(data) {
+        this.data = data;
+
+        def(data, '__ob__', this);
+        // 递归
+        Object.keys(data).forEach(function (key) {
+            defineReactive(data, key, data[key]);
+        })
     }
-
-    // 递归
-    Object.keys(data).forEach(function (key) {
-        defineReactive(data, key, data[key]);
-    })
 }
 
 function defineReactive(data, key, val) {
-    observe(val);
+    // 递归子属性
+    if (typeof val === 'object') {
+        new Observer(data);
+    }
 
     let dep = new Dep();
     Object.defineProperty(data, key, {
