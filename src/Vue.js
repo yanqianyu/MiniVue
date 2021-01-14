@@ -62,7 +62,7 @@ class Vue {
         const methods = this.$options.methods ? this.$options.methods : {};
         // 把methods赋值到vm实例上
         Object.keys(methods).forEach(m => {
-            this[m] = Object.bind(methods[m], this);
+            this[m] = methods[m];
         });
     }
 
