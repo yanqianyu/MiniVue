@@ -1,9 +1,26 @@
 import Dep from "./Dep";
-import {def} from "../utils";
+import {def, hasOwn} from "../utils";
+
+export default function observe(data) {
+    if (!data || typeof data !== 'object') {
+        return;
+    }
+
+    let ob;
+    if (hasOwn(data, '__ob__') && data.__ob__ instanceof Observer) {
+        ob = data.__ob__;
+    }
+    else if(!data._isVue) {
+        ob = new Observer(data);
+    }
+
+    return ob;
+}
 
 export class Observer {
     constructor(data) {
         this.data = data;
+        this.dep = new Dep();
 
         def(data, '__ob__', this);
         // 递归

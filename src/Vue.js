@@ -1,4 +1,4 @@
-import {observe} from "./core/Observer";
+import observe from "./core/Observer";
 import Watcher from "./core/Watcher";
 import Compile from "./compiler/Compile";
 import {mergeOptions, toArray} from "./utils";
@@ -6,77 +6,69 @@ import {mergeOptions, toArray} from "./utils";
 
 class Vue {
     constructor(options) {
-        this._watchers = [];
-
-        this.data = options.data;
-        let self = this;
-        this.methods = options.methods ? options.methods : {};
-
-        // 把methods赋值到vm实例上
-        Object.keys(this.methods).forEach(m => {
-            self[m] = self.methods[m];
-        });
-
-        this._textNodes = []; // 存放文本节点 在compile中使用
-
-        Object.keys(this.data).forEach(function (key) {
-            self.proxyKeys(key);
-        });
-
-        observe(this.data);
-        new Compile(options.el, this);
-
-        if (options.watch) {
-            Object.keys(options.watch).forEach(key => {
-                new Watcher(self, key, options.watch[key]);
-            })
-        }
+        this._init(options);
         return this;
     }
 
-    // this.data.XXX -> this.XXX
+    // 初始化数据和方法
+    _init(options) {
+        this.$options = options;
+        // 观察者实例
+        this._watchers = [];
+        // Vue实例
+        this._isVue = true;
+
+        this._initData();
+        this._initMethods();
+        this._initWatch();
+        this._compile();
+    }
+
+    // this._data.XXX -> this.XXX
     proxyKeys(key) {
         let self = this;
         Object.defineProperty(this, key, {
             enumerable: false,
             configurable: true,
             get: function () {
-                return self.data[key];
+                return self._data[key];
             },
             set: function (newVal) {
-                self.data[key] = newVal;
+                self._data[key] = newVal;
             }
         })
     }
 
-    // 初始化数据和方法
-    _init(options) {
-        this.$el = null;
-        this.$parent = options.parent;
-        // Vue实例
-        this._isVue = true;
-        // 根组件
-        this.$root = this.$parent? this.$parent.$root: this;
-        // 子组件
-        this.$children = [];
-        // 观察者
-        this._watchers = [];
+    _initData() {
+        let data = this.$options.data;
+        data = this._data = typeof data === 'function' ? data(): data || {};
+        Object.keys(data).forEach(key => {
+            this.proxyKeys(key);
+        });
 
-        // 有父组件，加入父组件的children
-        if (this.$parent) {
-            this.$parent.$children.push(this);
-        }
+        // 监听数据
+        observe(this._data);
+    }
 
-        // 合并参数
-        options = this.$options = mergeOptions(this.constructor.options, options, this);
-
-        if (options.el) {
-            this._compile()
+    _initWatch() {
+        if (this.$options.watch) {
+            Object.keys(this.$options.watch).forEach(key => {
+                new Watcher(this, key, this.$options.watch[key]);
+            })
         }
     }
 
-    _compile() {
+    _initMethods() {
+        const methods = this.$options.methods ? this.$options.methods : {};
+        // 把methods赋值到vm实例上
+        Object.keys(methods).forEach(m => {
+            this[m] = Object.bind(methods[m], this);
+        });
+    }
 
+    _compile() {
+        this._textNodes = []; // 存放文本节点 在compile中使用
+        new Compile(this.$options.el, this);
     }
 }
 

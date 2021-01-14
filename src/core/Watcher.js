@@ -19,7 +19,7 @@ export default class Watcher {
 
     get() {
         window.target = this; // 缓存
-        let value = this.vm.data[this.expOrFn];
+        let value = this.vm._data[this.expOrFn];
         window.target = null; // 释放
         return value;
     }

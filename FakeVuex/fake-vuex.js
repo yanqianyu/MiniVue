@@ -4,12 +4,12 @@ class Store {
         // 使得store.state变为响应式数据
         this._vm = new Vue({
             data: {
-                state: options.$state
+                state: options.state
             }
         });
 
         // getter
-        let getters = options.getter || {};
+        let getters = options.getters || {};
         this.getters = {};
         Object.keys(getters).forEach(getterName => {
             Object.defineProperty(this.getters, getterName, {
