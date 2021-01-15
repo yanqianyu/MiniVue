@@ -78,7 +78,7 @@ export function mergeOptions(parent, child, vm) {
     }
 
     if (child.mixins) {
-        for (var i = 0, l = child.mixins.length; i < l; i++) {
+        for (let i = 0, l = child.mixins.length; i < l; i++) {
             const mixin = child.mixins[i];
             const mixinOptions = mixin.prototype instanceof Vue ? mixin.options : mixin;
             parent = mergeOptions(parent, mixinOptions, vm);
@@ -135,8 +135,8 @@ strats.data = function (parentVal, childVal, vm) {
         }
     } else if (parentVal || childVal) {
         return function mergedInstanceDataFn() {
-            const instanceData = typeof childVal === 'function' ? childVal.call(vm) : childVal
-            const defaultData = typeof parentVal === 'function' ? parentVal.call(vm) : undefined
+            const instanceData = typeof childVal === 'function' ? childVal.call(vm) : childVal;
+            const defaultData = typeof parentVal === 'function' ? parentVal.call(vm) : undefined;
             if (instanceData) {
                 return mergeData(instanceData, defaultData)
             } else {

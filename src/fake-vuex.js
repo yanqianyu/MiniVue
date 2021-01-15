@@ -1,32 +1,39 @@
+function forEachValue(obj, fn) {
+    Object.keys(obj).forEach(function(key) {return fn(obj[key], key)})
+}
+
 class Store {
     constructor(options) {
         // 创建一个Vue实例并把store.state挂载到Vue的options上
         // 使得store.state变为响应式数据
-        this._vm = new Vue({
-            data: {
-                state: options.state
-            }
-        });
+        if (window.Vue) {
+            install(window.Vue);
+        }
+        let computed = {}; // 计算属性
 
         // getter
         let getters = options.getters || {};
         this.getters = {};
-        Object.keys(getters).forEach(getterName => {
-            Object.defineProperty(this.getters, getterName, {
-                get() {
-                    return getters[getterName](this.state)
-                }
+        forEachValue(getters, (fn, key) => {
+            computed[key] = () => fn(this.state);
+            Object.defineProperty(this.getters, key, {
+                get: () => fn(this._vm[key])
             })
+        });
+
+        this._vm = new Vue({
+            data: {
+                $$state: options.state
+            },
+            computed: computed
         });
 
         // mutation
         // this.$store.commit('XX', y)
         let mutations = options.mutations || {};
         this.mutations = {};
-        Object.keys(mutations).forEach(mutationName => {
-           this.mutations[mutationName] = (payload) => {
-               mutations[mutationName](this.state, payload)
-           }
+        forEachValue(mutations, (fn, key) => {
+            this.mutations[key] = (payload) => fn(this.state, payload)
         });
 
         // action
@@ -38,17 +45,15 @@ class Store {
         //         },1000)
         //     }
         // },
-        let actions = options.actions;
+        let actions = options.actions || {};
         this.actions = {};
-        Object.keys(actions).forEach(actionName => {
-            this.actions[actionName] = (payload) => {
-                actions[actionName](this, payload);
-            }
+        forEachValue(actions, (fn, key) => {
+            this.actions[key] = (payload) => fn(this, payload);
         })
     }
 
     get state() {
-        return this._vm.state;
+        return this._vm._data.$$state;
     }
 
     // Action与Mutation作用相同都是变更store.state中的数据，
@@ -108,4 +113,4 @@ let FakeVuex = {
     Store,
     install
 };
-export default FakeVuex;
+window.FakeVuex = FakeVuex;

@@ -5,6 +5,7 @@
     <title>mini vue</title>
 </head>
 <script src="./dist/vue.js"></script>
+<script src="./src/fake-vuex.js"></script>
 <body>
     <div id="app">
         <h2>{{year}}年{{month}}月</h2>
@@ -12,18 +13,43 @@
         <button v-on:click="increaseYear">year增加</button>
         <p v-show="show">show一下</p>
         <button @click="changeShow">改变show的状态</button>
+
+        <button @click="reduce">减少</button>
+        <p>{{message}}</p>
+        <button @click="add">增加</button>
     </div>
     <script>
         // import FakeVuex from "./FakeVuex/fake-vuex";
-        // Vue.use(FakeVuex);
+
+        const store = new FakeVuex.Store({
+            state: {
+                message: 0
+            },
+            mutations: {
+                reduceMsg: function (state) {
+                    state.message--;
+                    console.log(state.message);
+                },
+                addMsg: function (state) {
+                    state.message++;
+                    console.log(state.message);
+                }
+            }
+        });
 
         var selfVue = new Vue({
             el: '#app',
+            store, // 在vue中注册，直接引用
             data: {
                 year: 2021,
                 month: 1,
                 delta: 1,
-                show: false
+                show: false,
+            },
+            computed: {
+                message: function () {
+                    return this.$store.state.message;
+                }
             },
             methods: {
                 increaseYear() {
@@ -32,6 +58,12 @@
                 changeShow() {
                     console.log('change show');
                     this.show = !this.show;
+                },
+                add() {
+                    store.commit('addMsg'); // commit触发状态管理
+                },
+                reduce() {
+                    store.commit('reduceMsg');
                 }
             },
             watch: {

@@ -2,7 +2,7 @@ import observe from "./core/Observer";
 import Watcher from "./core/Watcher";
 import Compile from "./compiler/Compile";
 import {mergeOptions, toArray} from "./utils";
-
+import directives from './directives/handles.js';
 
 class Vue {
     constructor(options) {
@@ -12,16 +12,34 @@ class Vue {
 
     // 初始化数据和方法
     _init(options) {
-        this.$options = options;
+        this.$parent = options.parent;
         // 观察者实例
         this._watchers = [];
         // Vue实例
         this._isVue = true;
+        // 根组件
+        this.$root = this.$parent ? this.$parent.$root: this;
+        // 存放子组件
+        this.$children = [];
+        if (this.$parent) {
+            this.$parent.$children.push(this)
+        }
 
+        // 合并参数
+        options = this.$options = mergeOptions(this.constructor.options, options, this);
+        this._callHook('beforeCreate');
+
+        this._initMixins();
         this._initData();
         this._initMethods();
         this._initWatch();
-        this._compile();
+        this._initComputed();
+        this._callHook('created');
+
+        if (options.el) {
+            // Vuex也用的Vue，但是没模板，所以判断一下
+            this._compile();
+        }
     }
 
     // this._data.XXX -> this.XXX
@@ -37,6 +55,13 @@ class Vue {
                 self._data[key] = newVal;
             }
         })
+    }
+
+    _initMixins() {
+        let options = this.$options;
+        if (options.mixin) {
+            this.$options = mergeOptions(options, options.mixin);
+        }
     }
 
     _initData() {
@@ -58,6 +83,20 @@ class Vue {
         }
     }
 
+    _initComputed() {
+        if (this.$options.computed) {
+            const computed = this.$options.computed;
+            Object.keys(computed).forEach(key => {
+                Object.defineProperty(this, key, {
+                    enumerable: true,
+                    configurable: true,
+                    get: makeComputedGetter(computed[key], this),
+                    set: noop
+                })
+            })
+        }
+    }
+
     _initMethods() {
         const methods = this.$options.methods ? this.$options.methods : {};
         // 把methods赋值到vm实例上
@@ -66,11 +105,29 @@ class Vue {
         });
     }
 
+    // 生命周期钩子函数
+    _callHook(hook) {
+        const handlers = this.$options[hook];
+        if (typeof handlers === 'function') {
+            handlers.call(this)
+        } else if (handlers) {
+            handlers.forEach(handler => {
+                handler.call(this)
+            })
+        }
+    }
+
     _compile() {
         this._textNodes = []; // 存放文本节点 在compile中使用
         new Compile(this.$options.el, this);
     }
 }
+
+Vue.options = {
+    directives,
+    components: {},
+    filters: {},
+};
 
 // 混入对象
 Vue.mixin = function (mixin) {
@@ -155,3 +212,22 @@ Vue.component = function(id, definition) {
 };
 
 window.Vue = Vue;
+
+// 空操作
+function noop() {}
+
+// 生成计算属性getter
+function makeComputedGetter(getter, vm) {
+    const watcher = new Watcher(vm, getter, null, {
+        lazy: true
+    });
+    return function computedGetter() {
+        if (watcher.dirty) {
+            watcher.evaluate()
+        }
+        if (window.target) {
+            watcher.depend()
+        }
+        return watcher.value
+    }
+}
