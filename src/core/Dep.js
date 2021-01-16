@@ -24,7 +24,7 @@ export default class Dep {
     notify() {
         // stabilize the subscriber list first
         const subs = this.subs.slice();
-        for(let i = 0; i < subs.length; i++) {
+        for(let i = 0, l = subs.length; i < l; i++) {
             subs[i].update();
         }
     }

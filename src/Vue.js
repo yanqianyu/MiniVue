@@ -160,57 +160,6 @@ Vue.use = function (plugin) {
     return this;
 };
 
-// 创建子类
-let cid = 1;
-Vue.extend = function(extendOptions) {
-    extendOptions = extendOptions || {};
-    const Super = this;
-    const SuperId = Super.cid;
-    const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {});
-    if (cachedCtors[SuperId]) {
-        // 已经缓存过构造函数，直接返回
-        return cachedCtors[SuperId];
-    }
-
-    const name = extendOptions.name || Super.Options.name;
-    const Sub = function VueComponent(options) {
-        this._init(options);
-    };
-
-    Sub.prototype = Object.create(Super.prototype);
-    Sub.prototype.constructor = Sub;
-    Sub.cid = cid++;
-
-    Sub.options = mergeOptions(
-        Super.options,
-        extendOptions
-    );
-
-    Sub['super'] = Super;
-    Sub.extent = Super.extend;
-    Sub.component = Super.component;
-
-    if (name) {
-        Sub.options.components[name] = Sub;
-    }
-
-    // 缓存构造函数
-    cachedCtors[SuperId] = Sub;
-    return Sub;
-};
-
-// 注册或获取全局组件
-Vue.component = function(id, definition) {
-    if (!definition) {
-        return this.options['components'][id];
-    }
-    else {
-        definition.name = definition.name || id;
-        definition = Vue.extend(definition);
-        this.options['components'][id] = definition;
-        return definition;
-    }
-};
 
 window.Vue = Vue;
 

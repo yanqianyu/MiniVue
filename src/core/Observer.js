@@ -32,16 +32,14 @@ export class Observer {
 }
 
 function defineReactive(data, key, val) {
-    // 递归子属性
     let dep = new Dep();
-
-    let childOb = observe(data);
+    // 递归子属性
+    let childOb = observe(val);
     Object.defineProperty(data, key, {
         enumerable: true,
         configurable: true,
         get: function () {
             if(Dep.target) {
-                // fixme: vuex中get时候window.target为null
                 console.log(Dep.target);
                 console.log('get value of ' + key);
                 dep.depend(); // 收集依赖
