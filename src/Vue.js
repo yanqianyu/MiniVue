@@ -3,6 +3,7 @@ import Watcher from "./core/Watcher";
 import Compile from "./compiler/Compile";
 import {mergeOptions, toArray} from "./utils";
 import directives from './directives/handles.js';
+import Dep from "./core/Dep";
 
 class Vue {
     constructor(options) {
@@ -225,7 +226,7 @@ function makeComputedGetter(getter, vm) {
         if (watcher.dirty) {
             watcher.evaluate()
         }
-        if (window.target) {
+        if (Dep.target) {
             watcher.depend()
         }
         return watcher.value

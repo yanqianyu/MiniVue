@@ -44,9 +44,9 @@ export default class Watcher {
 
     get() {
         const vm = this.vm;
-        window.target = this; // 缓存
+        Dep.target = this; // 缓存
         let value = this.getter.call(vm, vm);
-        window.target = null; // 释放
+        Dep.target = null; // 释放
         return value;
     }
 
@@ -77,10 +77,10 @@ export default class Watcher {
     }
 
     evaluate() {
-        const cur = window.target;
+        const cur = Dep.target;
         this.value = this.get();
         this.dirty = false;
-        window.target = cur;
+        Dep.target = cur;
     }
 
     depend() {

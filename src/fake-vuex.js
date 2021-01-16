@@ -68,26 +68,6 @@ class Store {
 
 }
 
-const prototypeAccessors = {state: {configurable: true}};
-
-prototypeAccessors.state.get = function () {
-    return this._vm._data.$$state
-};
-
-prototypeAccessors.state.set = function () {
-};
-
-Object.defineProperties(Store.prototype, prototypeAccessors);
-
-// getters转换为Vue中的计算属性，从而实现依赖改变getter重新求值
-Store.prototype.initGetters = function (getters) {
-    let computed = {};
-    Object.keys(getters).forEach(key => {
-        computed[key] = () => getters[key](this.state);
-    });
-    return computed;
-};
-
 let Vue;
 // Vue.use(plugin)
 // Vue.use(Vuex)使得每个组件都可以拥有store实例

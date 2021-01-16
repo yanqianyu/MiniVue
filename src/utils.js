@@ -157,7 +157,7 @@ strats.el = function (parentVal, childVal, vm) {
 };
 
 
-strats.init =
+strats.beforeCreate =
     strats.created =
         strats.ready =
             strats.attached =

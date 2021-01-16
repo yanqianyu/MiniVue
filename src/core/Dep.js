@@ -15,9 +15,9 @@ export default class Dep {
     }
 
     depend() {
-        if (window.target) {
-            this.addSub(window.target);
-            window.target.addDep(this);
+        if (Dep.target) {
+            this.addSub(Dep.target);
+            Dep.target.addDep(this);
         }
     }
 
@@ -29,6 +29,8 @@ export default class Dep {
         }
     }
 }
+
+Dep.target = null;
 
 function remove(arr, item) {
     if (arr.length) {

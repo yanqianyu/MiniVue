@@ -24,23 +24,31 @@ export class Observer {
 
         def(data, '__ob__', this);
         // 递归
-        Object.keys(data).forEach(function (key) {
-            defineReactive(data, key, data[key]);
-        })
+        const keys = Object.keys(data);
+        for (let i = 0, len = keys.length; i < len; i++) {
+            defineReactive(data, keys[i], data[keys[i]])
+        }
     }
 }
 
 function defineReactive(data, key, val) {
     // 递归子属性
-    observe(data);
-
     let dep = new Dep();
+
+    let childOb = observe(data);
     Object.defineProperty(data, key, {
         enumerable: true,
         configurable: true,
         get: function () {
-            console.log('get value of ' + key);
-            dep.depend(); // 收集依赖
+            if(Dep.target) {
+                // fixme: vuex中get时候window.target为null
+                console.log(Dep.target);
+                console.log('get value of ' + key);
+                dep.depend(); // 收集依赖
+                if (childOb) {
+                    childOb.dep.depend();
+                }
+            }
             return val;
         },
         set: function (newVal) {
@@ -49,9 +57,9 @@ function defineReactive(data, key, val) {
             }
             val = newVal;
             console.log('set value of ' + key + ' with ' + val);
+            childOb = observe(newVal);
             dep.notify(); // 触发更新
         }
     })
 }
 
-window.target = null;
