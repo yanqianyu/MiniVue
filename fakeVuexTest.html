@@ -21,7 +21,7 @@
     <p>计算属性测试: {{sum}}</p>
 </div>
 <script>
-    const store = new FakeVuex.Store({
+    const moduleA = {
         state: {
             message: 0
         },
@@ -32,6 +32,17 @@
             addMsg: function (state) {
                 state.message++;
             }
+        }
+    };
+    const moduleB = {
+        state: {
+            message: 1
+        }
+    };
+    const store = new FakeVuex.Store({
+        modules: {
+            a: moduleA,
+            b: moduleB
         }
     });
 
@@ -46,7 +57,7 @@
         },
         computed: {
             message: function () {
-                return this.$store.state.message;
+                return this.$store.state.a.message;
             },
             sum: function () {
                 return this.year + this.month;
