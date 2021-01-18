@@ -9,6 +9,10 @@ class Module {
         this.state = newModule.state;
     }
 
+    get namespaced() {
+        return !!this._raw.namespaced;
+    }
+
     getChild(key) {
         return this._children[key];
     }
@@ -66,6 +70,7 @@ class ModuleCollection {
         // 注册模块
         this.register([], options);
     }
+
     register(path, rootModule) {
         let newModule = new Module(rootModule);
 
@@ -86,27 +91,37 @@ class ModuleCollection {
                 this.register(path.concat(moduleName), module);
             })
         }
+    }
 
+    getNamespaced(path) {
+        let root = this.root;
+        return path.reduce((str, key) => {
+            root = root.getChild(key);
+            return str + (root.namespaced ? key + '/' : '')
+        }, '');
     }
 }
 
 function installModule(store, rootState, path, module) {
+    // 获取module的namespace
+    const namespace = store._modules.getNamespaced(path);
+
     module.forEachMutation((mutation, key) => {
-        store._mutations[key] = (store._mutations[key] || []);
-        store._mutations[key].push((payload) => {
+        store._mutations[namespace + key] = (store._mutations[namespace + key] || []);
+        store._mutations[namespace + key].push((payload) => {
             mutation.call(store, module.state, payload);
         })
     });
 
     module.forEachAction((action, key) => {
-        store._actions[key] = (store._actions[key] || []);
-        store._actions[key].push((payload) => {
+        store._actions[namespace + key] = (store._actions[namespace + key] || []);
+        store._actions[namespace + key].push((payload) => {
             action.call(store, store, payload);
         })
     });
 
     module.forEachGetter((getter, key) => {
-        store._wrapperGetters[key] = function () {
+        store._wrapperGetters[namespace + key] = function () {
             return getter(module.state);
         }
     });
